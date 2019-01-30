@@ -3,10 +3,21 @@ import PropTypes from 'prop-types';
 import { noop, pick, omit } from 'lodash';
 import ReactDatePicker from 'react-datepicker';
 import uncontrollable from 'uncontrollable';
-import { injectGlobal, withTheme } from 'styled-components';
+import moment from 'moment';
+import styled, { injectGlobal, withTheme } from 'styled-components';
 
 import datepickerStyles from './datePickerStyles';
 import Textbox from '../../controls/textbox/Textbox';
+
+const DatePickerWrapper = styled.div`
+  display: inline-block;
+`;
+
+const NonMobileOnyDatePicker = styled(ReactDatePicker)`
+  @media (max-width: ${props => props.theme.screenSize.phone}) {
+    display: none;
+  }
+`;
 
 class DateTextbox extends React.Component {
   static propTypes = Textbox.propTypes; // eslint-disable-line react/forbid-foreign-prop-types
@@ -24,6 +35,34 @@ class DateTextbox extends React.Component {
   }
 }
 
+const NativeDatePicker = props => {
+  const onChangeIntercept = event => props.onChange(moment(event.target.value));
+  const dateValue =
+    !!props.selectedDate && props.selectedDate.isValid()
+      ? props.selectedDate.format('YYYY-MM-DD')
+      : '';
+
+  return (
+    <DateTextbox
+      name={props.name}
+      prependIconName="calendar"
+      type="date"
+      value={dateValue}
+      {...props}
+      onChange={onChangeIntercept}
+    />
+  );
+};
+
+const MobileOnlyDatePicker = styled(NativeDatePicker)`
+  @media (min-width: ${props => props.theme.screenSize.phone}) {
+    display: none;
+  }
+  @media (width: ${props => props.theme.screenSize.phone}) {
+    display: block;
+  }
+`;
+
 export const DatePicker = props => {
   const {
     children,
@@ -33,6 +72,7 @@ export const DatePicker = props => {
     placeholder,
     selectedDate,
     theme,
+    allowNativeDatepickerOnMobile,
     ...otherProps
   } = props;
 
@@ -61,17 +101,33 @@ export const DatePicker = props => {
     />
   );
 
-  return (
-    <ReactDatePicker
-      customInput={textbox}
+  const mobileDatePicker = allowNativeDatepickerOnMobile ? (
+    <MobileOnlyDatePicker
+      selectedDate={selectedDate}
       onChange={onChange}
-      onBlur={onBlur}
-      placeholderText={placeholder}
-      selected={selectedDate}
-      {...datepickerProps}
-    >
-      {children}
-    </ReactDatePicker>
+      name={name}
+      {...textboxProps}
+    />
+  ) : null;
+
+  const NonMobileDatePicker = allowNativeDatepickerOnMobile
+    ? NonMobileOnyDatePicker
+    : ReactDatePicker;
+
+  return (
+    <DatePickerWrapper>
+      <NonMobileDatePicker
+        customInput={textbox}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholderText={placeholder}
+        selected={selectedDate}
+        {...datepickerProps}
+      >
+        {children}
+      </NonMobileDatePicker>
+      {mobileDatePicker}
+    </DatePickerWrapper>
   );
 };
 
@@ -111,6 +167,12 @@ DatePicker.propTypes = {
   /** Sets the end date (moment) in a range */
   endDate: PropTypes.object,
   /**
+   * Determines whether to use the native datepicker instead of the React datepicker on mobile devices.
+   * For complicated scenarios like date ranges and such, it is recommended to disable this.
+   * Defaults to true.
+   */
+  allowNativeDatepickerOnMobile: PropTypes.bool,
+  /**
    * Theme object used by the ThemeProvider,
    * automatically passed by any parent component using a ThemeProvider
    */
@@ -133,6 +195,7 @@ DatePicker.defaultProps = {
   selectsEnd: false,
   startDate: undefined,
   endDate: undefined,
+  allowNativeDatepickerOnMobile: true,
   validationState: 'default'
 };
 
