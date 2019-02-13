@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withTheme, injectGlobal } from 'styled-components';
+import styled, { withTheme, injectGlobal } from 'styled-components';
 
 import { Manager, Target, Popper, Arrow } from 'react-popper';
 import Transition from 'react-transition-group/Transition';
@@ -17,6 +17,12 @@ const transitionStyles = {
   entering: { opacity: 0 },
   entered: { opacity: 1 }
 };
+const StyledPopper = styled(Popper)`
+  @media (max-width: ${props => props.theme.screenSize.phone}) {
+    right: 0px;
+    width: calc(100% - 30px);
+  }
+`;
 
 function getArrowSize(size) {
   switch (size) {
@@ -65,7 +71,7 @@ function Popup({
         unmountOnExit
       >
         {state => (
-          <Popper
+          <StyledPopper
             className={`${name}-popper`}
             placement={placement}
             eventsEnabled={transitionIn}
@@ -85,7 +91,7 @@ function Popup({
           >
             {children}
             <Arrow className={`${name}-popper__arrow`} />
-          </Popper>
+          </StyledPopper>
         )}
       </Transition>
     </Manager>

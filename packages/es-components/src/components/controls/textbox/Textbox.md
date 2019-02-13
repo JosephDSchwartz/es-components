@@ -98,9 +98,9 @@ Adding an `additionalHelpContent` prop will provide additional help content unde
 </div>
 ```
 
-### Appending and Prepending text
+### Appending and prepending icons
 
-Provide an `appendText` or `prependText` prop for appending and prepending inputs. Validation state colorings will also be applied.
+Provide an `appendIconName` or `prependIconName` prop for appending and prepending inputs. Validation state colorings will also be applied.
 
 ```
 <div>

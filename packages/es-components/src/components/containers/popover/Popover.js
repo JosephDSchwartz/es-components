@@ -37,7 +37,7 @@ const PopoverContainer = styled.div`
   background: ${props => props.theme.colors.white};
   border: 1px solid rgba(0, 0, 0, 0.2);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
+  max-width: ${props => props.theme.screenSize.phone};
   min-width: 270px;
 `;
 
