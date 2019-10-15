@@ -2,15 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'react-modal';
 import _noop from 'lodash/noop';
-import styled from 'styled-components';
-import SlidingPaneStyles from './SlidingPaneStyles';
+import styled, { createGlobalStyle } from 'styled-components';
 import Heading from '../heading/Heading';
 import LinkButton from '../../controls/buttons/LinkButton';
 import Icon from '../../base/icons/Icon';
 
 const PaneBase = styled(Modal)`
-  background: #fff;
-  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.5);
+  background: ${props => props.theme.colors.white};
+  box-shadow: 0 8px 8px ${props => props.theme.colors.boxShadowDark};
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -18,11 +17,9 @@ const PaneBase = styled(Modal)`
   transition: transform 0.5s;
   width: 100%;
   will-change: transform;
-
   &:focus {
     outline-style: none;
   }
-
   @media (min-width: ${props => props.theme.screenSize.tablet}) {
     width: 900px;
   }
@@ -31,11 +28,9 @@ const PaneBase = styled(Modal)`
 const PaneRight = styled(PaneBase)`
   margin-left: auto;
   transform: translateX(100%);
-
   &.ReactModal__Content--after-open {
     transform: translateX(0%);
   }
-
   &.ReactModal__Content--before-close {
     transform: translateX(100%);
   }
@@ -44,11 +39,9 @@ const PaneRight = styled(PaneBase)`
 const PaneLeft = styled(PaneBase)`
   margin-right: auto;
   transform: translateX(-100%);
-
   &.ReactModal__Content--after-open {
     transform: translateX(0%);
   }
-
   &.ReactModal__Content--before-close {
     transform: translateX(-100%);
   }
@@ -58,11 +51,9 @@ const PaneBottom = styled(PaneBase)`
   height: 90vh;
   margin-top: 10vh;
   transform: translateY(100%);
-
   &.ReactModal__Content--after-open {
     transform: translateY(0%);
   }
-
   &.ReactModal__Content--before-close {
     transform: translateY(100%);
   }
@@ -70,9 +61,8 @@ const PaneBottom = styled(PaneBase)`
 
 const Header = styled.div`
   align-items: center;
-  background-color: #006685;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  color: #fff;
+  background-color: ${props => props.theme.colors.popoverHeader};
+  color: ${props => props.theme.colors.white};
   display: flex;
   flex: 0 0 64px;
   height: 64px;
@@ -112,6 +102,32 @@ const Content = styled.div`
   position: relative;
 `;
 
+const defaultStyles = {
+  overlay: {
+    backgroundColor: 'rgba(0,0,0,0)',
+    top: '0',
+    left: '0',
+    right: '0',
+    bottom: '0',
+    position: 'fixed',
+    zIndex: '1000',
+    transition: 'background-color 0.5s'
+  },
+  content: {}
+};
+
+const GlobalPaneStyles = createGlobalStyle`
+  .ReactModal__Body--open {
+    overflow-y: hidden;
+  }
+  .ReactModal__Overlay--after-open {
+    background-color: rgba(0,0,0,0.3) !important;
+  }
+  .ReactModal__Overlay--before-close {
+    background-color: rgba(0,0,0,0) !important;
+  }
+`;
+
 function getPane(direction) {
   switch (direction) {
     case 'bottom':
@@ -131,16 +147,21 @@ export default function SlidingPane({
   onRequestClose,
   onAfterOpen,
   children,
-  overlayClassName,
   closeIcon,
   from,
   headingLevel,
   headingSize,
   closeTimeout,
+  overlayStyles,
+  contentStyles,
   appElement,
   ...rest
 }) {
   const Pane = getPane(from);
+  const styles = {
+    overlay: { ...defaultStyles.overlay, ...overlayStyles },
+    content: { ...defaultStyles.content, ...contentStyles }
+  };
 
   if (appElement) {
     Pane.setAppElement(appElement);
@@ -150,9 +171,9 @@ export default function SlidingPane({
 
   return (
     <>
-      <SlidingPaneStyles />
+      <GlobalPaneStyles />
       <Pane
-        overlayClassName={overlayClassName}
+        style={styles}
         closeTimeoutMS={closeTimeout}
         isOpen={isOpen}
         onAfterOpen={onAfterOpen}
@@ -186,14 +207,15 @@ SlidingPane.propTypes = {
   onRequestClose: PropTypes.func,
   onAfterOpen: PropTypes.func,
   children: PropTypes.any.isRequired,
-  overlayClassName: PropTypes.string,
   from: PropTypes.oneOf(['left', 'right', 'bottom']),
   closeIcon: PropTypes.any,
   headingLevel: Heading.propTypes.level,
   headingSize: Heading.propTypes.size,
   closeTimeout: PropTypes.number,
+  overlayStyles: PropTypes.object,
+  contentStyles: PropTypes.object,
   /** selector of application element (e.g. #root), for hiding of
-    main content for screenreaders when pane is open */
+   main content for screenreaders when pane is open */
   appElement: PropTypes.string
 };
 
@@ -208,7 +230,8 @@ SlidingPane.defaultProps = {
   subTitle: undefined,
   onRequestClose: _noop,
   onAfterOpen: _noop,
-  overlayClassName: 'slide-pane__overlay',
   closeIcon: undefined,
+  overlayStyles: {},
+  contentStyles: {},
   appElement: undefined
 };
